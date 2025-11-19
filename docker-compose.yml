@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: gubernator-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  gubernator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gubernator-server
+    ports:
+      - "8080:8080"  # HTTP
+      - "9090:9090"  # gRPC
+    environment:
+      - REDIS_ADDR=redis:6379
+      - REDIS_DB=0
+      - CAPACITY=10
+      - REFILL_RATE=1.0
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: ["./gubernator", "-redis-addr", "redis:6379", "-capacity", "10", "-refill-rate", "1.0"]
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+

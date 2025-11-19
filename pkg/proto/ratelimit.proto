@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package ratelimit;
+
+option go_package = "gubernator/pkg/proto";
+
+// RateLimitService provides rate limiting functionality via gRPC
+service RateLimitService {
+  // CheckRateLimit checks if a request should be allowed
+  rpc CheckRateLimit(RateLimitRequest) returns (RateLimitResponse);
+}
+
+// RateLimitRequest contains the information needed to check a rate limit
+message RateLimitRequest {
+  string key = 1;  // The identifier for rate limiting (IP, API key, etc.)
+}
+
+// RateLimitResponse contains the result of a rate limit check
+message RateLimitResponse {
+  bool allowed = 1;           // Whether the request is allowed
+  int32 remaining = 2;        // Number of requests remaining
+  int64 reset_time = 3;       // Unix timestamp when the limit resets
+  int32 retry_after = 4;      // Seconds to wait before retrying (if blocked)
+}
+
