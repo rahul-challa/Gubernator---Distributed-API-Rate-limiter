@@ -10,38 +10,38 @@ import (
 
 // Config holds the configuration for the rate limiter
 type Config struct {
-	Capacity  int           // Maximum number of tokens in the bucket
-	RefillRate float64      // Tokens per second
-	RedisAddr string        // Redis server address
-	RedisDB   int           // Redis database number
+	Capacity   int     // Maximum number of tokens in the bucket
+	RefillRate float64 // Tokens per second
+	RedisAddr  string  // Redis server address
+	RedisDB    int     // Redis database number
 }
 
 // RateLimiter implements the token bucket algorithm using Redis
 type RateLimiter struct {
-	client    *redis.Client
-	capacity  int
+	client     *redis.Client
+	capacity   int
 	refillRate float64
-	luaScript *redis.Script
+	luaScript  *redis.Script
 }
 
 // Result represents the result of a rate limit check
 type Result struct {
-	Allowed      bool
-	Remaining    int
-	ResetTime    time.Time
+	Allowed   bool
+	Remaining int
+	ResetTime time.Time
 }
 
 // NewRateLimiter creates a new rate limiter instance
 func NewRateLimiter(config Config) (*RateLimiter, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr:     config.RedisAddr,
-		DB:       config.RedisDB,
+		Addr: config.RedisAddr,
+		DB:   config.RedisDB,
 	})
 
 	// Test connection
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
+
 	if err := client.Ping(ctx).Err(); err != nil {
 		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
@@ -50,23 +50,23 @@ func NewRateLimiter(config Config) (*RateLimiter, error) {
 	luaScript := redis.NewScript(luaScriptSource)
 
 	return &RateLimiter{
-		client:    client,
-		capacity:  config.Capacity,
+		client:     client,
+		capacity:   config.Capacity,
 		refillRate: config.RefillRate,
-		luaScript: luaScript,
+		luaScript:  luaScript,
 	}, nil
 }
 
 // Allow checks if a request is allowed for the given key
 func (rl *RateLimiter) Allow(ctx context.Context, key string) (*Result, error) {
 	now := time.Now().Unix()
-	
+
 	// Execute Lua script atomically
-	result, err := rl.luaScript.Run(ctx, rl.client, []string{key}, 
-		rl.capacity, 
-		rl.refillRate, 
+	result, err := rl.luaScript.Run(ctx, rl.client, []string{key},
+		rl.capacity,
+		rl.refillRate,
 		now).Result()
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("lua script execution failed: %w", err)
 	}
@@ -126,4 +126,3 @@ end
 
 return {allowed, tokens, reset_time}
 `
-

@@ -16,7 +16,7 @@ func RateLimitMiddleware(limiter *limiter.RateLimiter, keyExtractor KeyExtractor
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Extract key (IP address or API key)
 			key := keyExtractor(r)
-			
+
 			// Check rate limit
 			result, err := limiter.Allow(r.Context(), key)
 			if err != nil {
@@ -38,7 +38,7 @@ func RateLimitMiddleware(limiter *limiter.RateLimiter, keyExtractor KeyExtractor
 					retryAfter = 0
 				}
 				json.NewEncoder(w).Encode(map[string]interface{}{
-					"error": "Rate limit exceeded",
+					"error":       "Rate limit exceeded",
 					"retry_after": retryAfter,
 				})
 				return
@@ -101,4 +101,3 @@ func ExtractAPIKey(r *http.Request) string {
 func DefaultKeyExtractor(r *http.Request) string {
 	return "ratelimit:" + ExtractIP(r)
 }
-

@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"gubernator/pkg/limiter"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"gubernator/pkg/limiter"
 )
 
 // RateLimitService implements the gRPC rate limit service
@@ -31,4 +31,3 @@ func (s *RateLimitService) CheckRateLimit(ctx context.Context, key string) (allo
 
 	return result.Allowed, result.Remaining, result.ResetTime, nil
 }
-

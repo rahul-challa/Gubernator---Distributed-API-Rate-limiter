@@ -13,10 +13,10 @@ import (
 func main() {
 	// Create rate limiter configuration
 	config := limiter.Config{
-		Capacity:  10,
+		Capacity:   10,
 		RefillRate: 1.0,
-		RedisAddr: "localhost:6379",
-		RedisDB:   0,
+		RedisAddr:  "localhost:6379",
+		RedisDB:    0,
 	}
 
 	// Initialize rate limiter
@@ -48,4 +48,3 @@ func main() {
 		time.Sleep(200 * time.Millisecond)
 	}
 }
-
